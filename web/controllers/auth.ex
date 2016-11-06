@@ -20,10 +20,19 @@ defmodule Rumbl.Auth do
     # check if a user is stored in the session
     user_id = get_session(conn, :user_id)
     # look up the user it it exists in the session
-    user    = user_id && repo.get(Rumb.User, user_id)
+    user    = user_id && repo.get(Rumbl.User, user_id)
     # assign result in the connection ,
     # this way current_user will always be accessible
     # in all downstream functions including views and controllers
     assign(conn, :current_user, user)
+  end
+
+  # receive the connection and the user
+  # and store the user_id in the session
+  def login(conn, user) do
+    conn
+    |> assign(:current_user, user)
+    |> put_session(:user_id, user.id)
+    |> configure_session(renew: true)
   end
 end
