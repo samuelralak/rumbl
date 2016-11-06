@@ -1,3 +1,9 @@
+#############################################
+# processes the request info and transfomrs #
+# the conn adding :current_user to          #
+# conn.assigns                              #
+#############################################
+
 defmodule Rumbl.Auth do
   import Plug.Conn
 
