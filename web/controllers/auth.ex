@@ -6,6 +6,7 @@
 
 defmodule Rumbl.Auth do
   import Plug.Conn
+  import Comeonin.Bcrypt, only: [checkpw: 2, dummy_checkpw: 0]
 
   def init(opts) do
     # extract repository from options
@@ -34,5 +35,29 @@ defmodule Rumbl.Auth do
     |> assign(:current_user, user)
     |> put_session(:user_id, user.id)
     |> configure_session(renew: true)
+  end
+
+  def login_by_username_and_pass(conn, username, given_pass, opts) do
+    # fetch the repository from the given opts
+    repo = Keyword.fetch!(opts, :repo)
+    # look up the user with the specified username
+    user = repo.get_by(Rumbl.User, username: username)
+
+    cond do
+      # if a matching user is found, log in and set the proper
+      # assigns and update the session as well
+      user && checkpw(given_pass, user.password_hash) ->
+        {:ok, login(conn, user)}
+      # if user is found but password doesnt match,
+      # return unauthorized
+      user ->
+        {:error, :unauthorized, conn}
+      # otherwise return not_found
+      true ->
+        # simulate password check with variable timing, This hardens our authentication
+        # layer against timing attacks,2 which is crucial to keeping our application secure.
+        dummy_checkpw()
+        {:error, :not_found, conn}
+    end
   end
 end
