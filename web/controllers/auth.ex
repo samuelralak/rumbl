@@ -7,6 +7,9 @@
 defmodule Rumbl.Auth do
   import Plug.Conn
   import Comeonin.Bcrypt, only: [checkpw: 2, dummy_checkpw: 0]
+  import Phoenix.Controller
+
+  alias Rumbl.Router.Helpers
 
   def init(opts) do
     # extract repository from options
@@ -67,5 +70,20 @@ defmodule Rumbl.Auth do
     # Example:
     #     delete_session(conn, :user_id)
     configure_session(conn, drop: true)
+  end
+
+  def authenticate_user(conn, _opts) do
+    if conn.assigns.current_user do
+      # if current_user exists
+      # retunr the conn unchanged
+      conn
+    else
+      # store a flash message and
+      # redirect back to our app root
+      conn
+      |> put_flash(:error, "You must be logged in to access that page.")
+      |> redirect(to: Helpers.page_path(conn, :index))
+      |> halt() # stop any downstream transformations
+    end
   end
 end
